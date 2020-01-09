@@ -1,12 +1,40 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
+    <Navbar 
+      :baseUrl="baseUrl"
+      :isEmpty="isEmpty" />
+
+    <router-view></router-view>
   </div>
 </template>
+
+<script>
+  import Navbar from '@/components/Navbar.vue'
+  export default {
+    name: 'app',
+    components: {
+      Navbar
+    },
+    data() {
+      return {
+        baseUrl: 'http://127.0.0.1:8000',
+      }
+    },
+    mounted() {
+      //
+    },
+    methods: {
+      isEmpty(obj) {
+        for(var prop in obj) {
+          if(obj.hasOwnProperty(prop)) {
+            return false;
+          }
+        }
+        return JSON.stringify(obj) === JSON.stringify({});
+      },
+    }
+  }
+</script>
 
 <style>
 #app {
