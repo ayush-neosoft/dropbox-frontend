@@ -7,33 +7,44 @@
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-
-        </ul>
-        
-        <ul class="navbar-nav ml-auto mr-5" v-if="isEmpty(user)">
+      <ul class="navbar-nav m-auto">
+        <li class="nav-item">
+          <router-link class="nav-link" to="/todos">Todos</router-link>
+        </li>
+        <li class="nav-item">
+          <router-link class="nav-link" to="/files">Files</router-link>
+        </li>
+        <li class="nav-item">
+          <router-link class="nav-link" to="/tasks">Tasks</router-link>
+        </li>
+        <li class="nav-item">
+          <router-link class="nav-link" to="/chats">Chats</router-link>
+        </li>
+      </ul>
+      
+      <ul class="navbar-nav ml-auto mr-5">
+        <span v-if="isEmptyObj(user)">
           <li class="nav-item">
-              <a href="#" class="nav-link" data-toggle="modal" data-target="#staticBackdrop" @click="authModal='login'">Login</a>
+            <a href="#" class="nav-link" data-toggle="modal" data-target="#staticBackdrop" @click="authModal='login'">Login</a>
           </li>
-        </ul>
+        </span>
+        <span v-else>
+          <!-- <li class="nav-item">
+              <a class="nav-link"><i class="fa fa-bell-o fa-lg" aria-hidden="true"></i></a>
+          </li> -->
 
-        <ul class="navbar-nav ml-auto mr-5" v-else>
-            <!-- <li class="nav-item">
-                <a class="nav-link"><i class="fa fa-bell-o fa-lg" aria-hidden="true"></i></a>
-            </li> -->
+          <li class="nav-item dropdown">
+              <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  {{user.name}} <span class="caret"></span>
+              </a>
 
-            <li class="nav-item dropdown">
-                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    {{user.name}} <span class="caret"></span>
-                </a>
-
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-										<router-link class="dropdown-item" to="/settings"><i class="fa fa-cog" aria-hidden="true"></i> Settings</router-link>
-                    <a class="dropdown-item" @click.prevent="doLogout"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>
-                </div>
-            </li>
-        </ul>
-        
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                  <router-link class="dropdown-item" to="/settings"><i class="fa fa-cog" aria-hidden="true"></i> Settings</router-link>
+                  <a class="dropdown-item" @click.prevent="doLogout"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>
+              </div>
+          </li>
+        </span>
+      </ul>
     </div>
 
     <!-- Modal -->
@@ -51,7 +62,7 @@
               </div>
             </form>
             <div class="text-center">
-              <button type="button" class="btn btn-sm btn-success" @click="doLogin">Login</button>
+              <button type="button" class="btn btn-sm btn-success" @click="doLogin(login)">Login</button>
               <button type="button" class="btn btn-sm btn-secondary ml-2" ref="closeModal" data-dismiss="modal" @click="cancel">Cancel</button>
             </div>
           </div>
@@ -76,6 +87,7 @@
               <button type="button" class="btn btn-sm btn-secondary ml-2" data-dismiss="modal" @click="cancel">Cancel</button>
             </div>
           </div>
+
           <div class="text-center mt-2 mb-3" style="font-size:0.8em">
             <a href="#" class="text-decoration-none" @click="auth_modal('register')" 
             v-if="authModal=='login'">New to Dropbox? SIGN UP</a>
@@ -88,45 +100,43 @@
   </nav>
 </template>
 
+<style scoped>
+.nav-link {
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin: 0 8px;
+}
+
+.nav-link:hover {
+  color: #FFF !important;
+  background-color: lightgreen;
+}
+</style>
+
 <script>
+import { mapState, mapActions } from 'vuex'
+
 export default {
-	props: {
-		baseUrl: String,
-		isEmpty: Function
-	},
   data() {
     return {
-      token: null,
-      user: {},
       authModal: '',
       login: this.emptyLoginForm(),
       register: this.emptyRegisterForm(),
     }
   },
-  created() {
-    if (localStorage.getItem('token')) {
-      try {
-        this.token = localStorage.getItem('token');
-      } catch(e) {
-        localStorage.removeItem('token');
-      }
-    }
-  },
   mounted() {
     this.checkAuth();
   },
+  computed: {
+    ...mapState({
+      baseUrl: state => state.auth.baseUrl,
+      token: state => state.auth.token,
+      user: state => state.auth.user
+    })
+  },
   methods: {
-    checkAuth() {
-      this.axios.get(`${this.baseUrl}/api/me`,  { headers: { Authorization: `Bearer ${this.token}` } }).then(response => {
-        console.log(response.data);
-        if(response.data.status) {
-          this.user = response.data.user;
-          this.$toasted.success(response.data.message, {duration: 2000});
-        } else {
-          this.$toasted.show(response.data.message, {duration: 2000});
-        } 
-      }).catch(error => console.log(error.response.data));
-    },
+    ...mapActions(['fetchToken', 'authenticate']),
     auth_modal(method){
       this.authModal = method;
     },
@@ -144,6 +154,18 @@ export default {
         c_password: ''
       }
     },
+    checkAuth() {
+      if (localStorage.getItem('token')) {
+        try {
+          this.$store.dispatch('localToken', localStorage.getItem('token'))
+        } catch(e) {
+          localStorage.removeItem('token');
+        }
+      }
+      this.axios.get(`${this.baseUrl}/api/me`, { headers: { Authorization: `Bearer ${this.token}` } }).then(response => {
+        this.$store.dispatch('authenticate', response.data)
+      })
+    },
     doLogin() {
       this.axios.post(`${this.baseUrl}/api/login`, {
         email: this.login.email, 
@@ -152,9 +174,8 @@ export default {
         console.log(response.data);
         this.$refs["closeModal"].click();
         if(response.data.status) {
-          this.user = response.data.user;
-          this.token = response.data.token;
-          localStorage.setItem('token', this.token);
+          this.$store.dispatch('authenticate', response.data);
+          localStorage.setItem('token', response.data.token);
           this.$toasted.success(response.data.message, {duration: 2000});
         } 
       }).catch(error => console.log(error.response.data));
@@ -169,13 +190,18 @@ export default {
         console.log(response.data);
         this.$refs["closeModal"].click();
         if(response.data.status) {
+          this.$store.dispatch('authenticate', response.data);
           this.$toasted.success(response.data.message, {duration: 2000});
         } 
       }).catch(error => console.log(error.response.data));
     },
     doLogout() {
-      this.user = {};
-      this.token = null;
+      let payload = {
+        user: {},
+        token: null
+      }
+      this.$store.dispatch('authenticate', payload);
+      localStorage.removeItem('token');
       this.$toasted.show('Logout Successful', {duration: 2000});
     },
     cancel() {

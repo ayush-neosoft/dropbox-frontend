@@ -1,10 +1,10 @@
 <template>
   <div id="app">
-    <Navbar 
-      :baseUrl="baseUrl"
-      :isEmpty="isEmpty" />
-
-    <router-view></router-view>
+    <Navbar />
+    
+    <div class="container">
+      <router-view></router-view>
+    </div>
   </div>
 </template>
 
@@ -14,34 +14,16 @@
     name: 'app',
     components: {
       Navbar
-    },
-    data() {
-      return {
-        baseUrl: 'http://127.0.0.1:8000',
-      }
-    },
-    mounted() {
-      //
-    },
-    methods: {
-      isEmpty(obj) {
-        for(var prop in obj) {
-          if(obj.hasOwnProperty(prop)) {
-            return false;
-          }
-        }
-        return JSON.stringify(obj) === JSON.stringify({});
-      },
     }
   }
 </script>
 
 <style>
+
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
 }
 

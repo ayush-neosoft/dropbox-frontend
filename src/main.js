@@ -16,6 +16,19 @@ Vue.use(VueAxios, axios)
 
 Vue.config.productionTip = false
 
+Vue.mixin({
+  methods: {
+    isEmptyObj(obj) {
+      for(var prop in obj) {
+        if(obj.hasOwnProperty(prop)) {
+          return false;
+        }
+      }
+      return JSON.stringify(obj) === JSON.stringify({});
+    },
+  }
+})
+
 new Vue({
   router,
   store,
