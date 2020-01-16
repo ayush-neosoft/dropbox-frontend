@@ -1,10 +1,10 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
-import Todos from '../views/Todos.vue'
+import Snippets from '../views/Snippets.vue'
 import Files from '../views/Files.vue'
 import Tasks from '../views/Tasks.vue'
-import Chats from '../views/Chats.vue'
+import Network from '../views/Network.vue'
 
 Vue.use(VueRouter)
 
@@ -15,9 +15,9 @@ const routes = [
     component: Home
   },
   {
-    path: '/todos',
-    name: 'todos',
-    component: Todos
+    path: '/tasks',
+    name: 'tasks',
+    component: Tasks
   },
   {
     path: '/files',
@@ -25,14 +25,14 @@ const routes = [
     component: Files
   },
   {
-    path: '/tasks',
-    name: 'tasks',
-    component: Tasks
+    path: '/snippets',
+    name: 'snippets',
+    component: Snippets
   },
   {
-    path: '/chats',
-    name: 'chats',
-    component: Chats
+    path: '/network',
+    name: 'network',
+    component: Network
   },
 ]
 
