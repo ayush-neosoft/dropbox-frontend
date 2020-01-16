@@ -8,14 +8,18 @@ const state = {
 const getters = {}
 
 const actions = {
-	localToken({commit}, payload) {
-		commit('setToken', payload);
+	setToken({commit}, payload) {
+		commit('setToken', payload)
 	},
 
-	authenticate({commit}, payload) {
-		commit('setToken', payload.token);
-		commit('setUser', payload.user);
+	setUser({commit}, payload) {
+		commit('setUser', payload)
 	},
+
+	setAuth({commit}, payload) {
+		commit('setToken', payload.token)
+		commit('setUser', payload.user)
+	}
 }
 
 const mutations = {

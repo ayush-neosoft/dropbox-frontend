@@ -23,7 +23,7 @@
 
 <script>
 import { mapState, mapActions } from 'vuex';
-import AddTodo from '@/components/AddTodo';
+import AddTodo from '@/components/Todos/AddTodo';
 
 export default {
 	name: "Todos",

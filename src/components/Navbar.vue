@@ -110,7 +110,9 @@
 
 .nav-link:hover {
   color: #FFF !important;
-  background-color: lightgreen;
+  background: #4b6cb7;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #182848, #4b6cb7);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #182848, #4b6cb7); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
 </style>
 
@@ -125,7 +127,7 @@ export default {
       register: this.emptyRegisterForm(),
     }
   },
-  mounted() {
+  created() {
     this.checkAuth();
   },
   computed: {
@@ -136,15 +138,9 @@ export default {
     })
   },
   methods: {
-    ...mapActions(['fetchToken', 'authenticate']),
+    ...mapActions(['setToken', 'setUser', 'setAuth']),
     auth_modal(method){
       this.authModal = method;
-    },
-    emptyLoginForm() {
-      return {
-        email: '',
-        password: ''
-      }
     },
     emptyRegisterForm() {
       return {
@@ -154,17 +150,19 @@ export default {
         c_password: ''
       }
     },
-    checkAuth() {
+    async checkAuth() {
       if (localStorage.getItem('token')) {
         try {
-          this.$store.dispatch('localToken', localStorage.getItem('token'))
+          let token = localStorage.getItem('token')
+          this.setToken(token)
         } catch(e) {
           localStorage.removeItem('token');
         }
+
+        const response = await this.axios.get(`${this.baseUrl}/api/me`, { headers: { Authorization: `Bearer ${this.token}` } })
+
+        this.setUser(response.data.user);
       }
-      this.axios.get(`${this.baseUrl}/api/me`, { headers: { Authorization: `Bearer ${this.token}` } }).then(response => {
-        this.$store.dispatch('authenticate', response.data)
-      })
     },
     doLogin() {
       this.axios.post(`${this.baseUrl}/api/login`, {
@@ -174,7 +172,7 @@ export default {
         console.log(response.data);
         this.$refs["closeModal"].click();
         if(response.data.status) {
-          this.$store.dispatch('authenticate', response.data);
+          this.setAuth(response.data);
           localStorage.setItem('token', response.data.token);
           this.$toasted.success(response.data.message, {duration: 2000});
         } 
@@ -190,23 +188,11 @@ export default {
         console.log(response.data);
         this.$refs["closeModal"].click();
         if(response.data.status) {
-          this.$store.dispatch('authenticate', response.data);
+          this.setAuth(response.data);
+          localStorage.setItem('token', response.data.token);
           this.$toasted.success(response.data.message, {duration: 2000});
         } 
       }).catch(error => console.log(error.response.data));
-    },
-    doLogout() {
-      let payload = {
-        user: {},
-        token: null
-      }
-      this.$store.dispatch('authenticate', payload);
-      localStorage.removeItem('token');
-      this.$toasted.show('Logout Successful', {duration: 2000});
-    },
-    cancel() {
-      this.login = this.emptyLoginForm();
-      this.register = this.emptyRegisterForm();
     }
   },
   watch: {

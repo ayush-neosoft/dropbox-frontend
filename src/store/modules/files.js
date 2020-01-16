@@ -1,6 +1,8 @@
 // import axios from 'axios'
 
-const state = {}
+const state = {
+    
+}
 
 const getters = {}
 
