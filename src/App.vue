@@ -106,7 +106,7 @@
         <footer class="sticky-footer bg-white">
           <div class="container my-auto">
             <div class="copyright text-center my-auto">
-              <span>Copyright &copy; Your Website 2019</span>
+              <span>Copyright &copy; 2020</span>
             </div>
           </div>
         </footer>
@@ -118,10 +118,10 @@
 </template>
 
 <script>
-  import { mapState, mapActions } from 'vuex'
   import Topbar from '@/components/Topbar'
   import Login from '@/components/Login'
   import Register from '@/components/Register'
+  import Auth from '@/apis/Auth'
   
   export default {
     name: 'app',
@@ -136,31 +136,15 @@
     mounted() {
       this.checkAuth();
     },
-    computed: {
-      ...mapState({
-        baseUrl: state => state.auth.baseUrl,
-        token: state => state.auth.token,
-        user: state => state.auth.user
-      })
-    },
-    watch: {
-      token() {
-        localStorage.token = this.token;
-      }
-    },
     methods: {
-      ...mapActions(['setToken', 'setUser', 'setAuth']),
       checkAuth() {
         if (localStorage.getItem('token')) {
-          try {
-            this.setToken(localStorage.getItem('token'))
-          } catch(e) {
-            localStorage.removeItem('token');
-          }
+          Auth.me().then(response => {
+            this.$store.dispatch('setUser', response.data.user)
+          })
+        } else {
+          this.$refs.authModal.click()
         }
-        this.axios.get(`${this.baseUrl}/api/me`, { headers: { Authorization: `Bearer ${this.token}` } }).then(response => {
-          this.setUser(response.data.user);
-        }).catch(() => this.$refs.authModal.click()) 
       },
     }
   }

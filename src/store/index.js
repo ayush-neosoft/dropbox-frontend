@@ -2,16 +2,33 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 
 // Modules
-import auth from './modules/auth'
 import todos from './modules/todos'
 import files from './modules/files'
-// import tasks from './modules/tasks'
-// import chats from './modules/chats'
+import snippets from './modules/snippets'
+import network from './modules/network'
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
+  state: {
+    user: {}
+  },
+
+  getters: {
+    user: state => state.user,
+  },
+
+  actions: {
+    setUser({commit}, user) {
+      commit('SET_USER', user)
+    },
+  },
+
+  mutations: {
+    SET_USER: (state, user) => state.user = user,
+  },
+
   modules: {
-    todos, auth, files
+    todos, files, snippets, network
   }
 })

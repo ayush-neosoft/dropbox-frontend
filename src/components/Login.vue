@@ -21,7 +21,7 @@
                   <label class="custom-control-label" for="customCheck">Remember Me</label>
                 </div>
               </div>
-              <a href="#" @click.prevent="doLogin(login)" class="btn btn-primary btn-user btn-block">
+              <a href="#" @click.prevent="doLogin()" class="btn btn-primary btn-user btn-block">
                 Login
               </a>
               <button type="button" class="d-none" ref="closeModal" data-dismiss="modal">Cancel</button>
@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import Auth from '../apis/Auth'
 
 export default {
 	data() {
@@ -56,13 +56,8 @@ export default {
       login: this.emptyLoginForm(),
     }
   },
-  computed: {
-    ...mapState({
-      baseUrl: state => state.auth.baseUrl,
-    })
-  },
+
   methods: {
-    ...mapActions(['setAuth']),
     emptyLoginForm() {
       return {
         email: '',
@@ -70,22 +65,21 @@ export default {
       }
     },
     doLogin() {
-      this.axios.post(`${this.baseUrl}/api/login`, {
-        email: this.login.email, 
-        password: this.login.password
-      }).then(response => {
+      let credentials = {
+        'email': this.login.email,
+        'password': this.login.password
+      }
+
+      Auth.login(credentials).then(response => {
         console.log(response.data);
-        this.clearForm();
+        this.login = this.emptyLoginForm();
         this.$refs["closeModal"].click();
         if(response.data.status) {
-          this.setAuth(response.data);
           localStorage.setItem('token', response.data.token);
+          this.$store.dispatch('setUser', response.data.user);
           this.$toasted.success(response.data.message, {duration: 2000});
         } 
-      }).catch(error => console.log(error.response.data));
-    },
-    clearForm() {
-      this.login = this.emptyLoginForm();
+      });
     }
   }
 }

@@ -29,7 +29,7 @@
                   <input type="password" class="form-control form-control-user" id="exampleRepeatPassword" placeholder="Repeat Password" v-model="register.c_password">
                 </div>
               </div>
-              <a href="login.html" class="btn btn-primary btn-user btn-block">
+              <a href="#" @click.prevent="doRegister()" class="btn btn-primary btn-user btn-block">
                 Register Account
               </a>
               <button type="button" class="d-none" ref="closeModal" data-dismiss="modal">Cancel</button>
@@ -56,48 +56,42 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import Auth from '../apis/Auth'
 
 export default {
 	data() {
     return {
-      emptyRegisterForm() {
-        return {
-          firstname: '',
-          lastname: '',
-          email: '',
-          password: '',
-          c_password: ''
-        }
-      },
+      register: this.emptyRegisterForm(),
     }
   },
-  computed: {
-    ...mapState({
-      baseUrl: state => state.auth.baseUrl,
-    })
-  },
   methods: {
-    ...mapActions(['setAuth']),
+    emptyRegisterForm() {
+      return {
+        firstname: '',
+        lastname: '',
+        email: '',
+        password: '',
+        c_password: ''
+      }
+    },
     doRegister() {
-      this.axios.post(`${this.baseUrl}/api/register`, {
-        name: this.register.firstname + ' ' + this.register.lastname, 
-        email: this.register.email, 
-        password: this.register.password,
-        c_password: this.register.c_password
-      }).then(response => {
+      let credentials = {
+        'name': this.register.firstname + ' ' + this.register.lastname,
+        'email': this.register.email,
+        'password': this.register.password,
+        'c_password': this.register.c_password
+      }
+
+      Auth.register(credentials).then(response => {
         console.log(response.data);
-        this.clearForm();
+        this.register = this.emptyRegisterForm();
         this.$refs["closeModal"].click();
         if(response.data.status) {
-          this.setAuth(response.data);
+          this.$store.dispatch('setUser', response.data.user);
           localStorage.setItem('token', response.data.token);
           this.$toasted.success(response.data.message, {duration: 2000});
         } 
       }).catch(error => console.log(error.response.data));
-    },
-    clearForm() {
-      this.register = this.emptyRegisterForm();
     }
   }
 }

@@ -8,8 +8,7 @@
 				<div class="card-header">
 					<span class="float-left">0:00</span>
 
-					<span class="m-3"><i class="text-warning fas fa-pause"></i></span>
-					<span><i class="text-primary fas fa-stop"></i></span>
+					<span><i class="text-warning fas fa-pause"></i></span>
 
 					<a href="#" @click="deleteTodo(todo.id)" class="text-muted float-right">
 						<i class="text-danger fas fa-trash"></i>

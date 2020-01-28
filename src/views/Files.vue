@@ -1,30 +1,69 @@
 <template>
 	<div class="container">
     <div class="row">
+
+			<!-- Files Upload Form -->
 			<div class="col-6 offset-3 mt-3">
-				<input type="file" id="files" ref="files" multiple @change="handleFileUploads()"/>
-			</div>
-			<br>
-			<div class="col-6 offset-3 text-center">
-				<div @click="addFiles()" class="addFiles">
-					<span class="title">Browse Files</span>
-					<i class="fa fa-plus fa-2x"></i>
+				<div v-if="formEnabled">
+					<input type="file" id="files" ref="files" multiple @change="handleFileUploads()"/>
+					<br>
+					<div class="text-center">
+						<div @click="addFiles()" class="addFiles">
+							<span class="title" style="line-height: 80px">Browse Files</span>
+						</div>
+					</div>
+					<br>
+					<ul class="list-group">
+						<li class="list-group-item" v-for="(file, index) in files" :key="index">
+							{{ file.name }}
+							<span class="remove-file" @click="removeFile(index)">x</span>
+						</li>
+					</ul>	
+					<br>
+					<div class="text-center">
+						<button class="btn btn-success" @click.prevent="submitFiles()">Upload</button>
+					</div>
+				</div>
+				<div class="text-center mt-5" v-if="fileLoop.length === 0">
+					<p class="text-muted">No Files Yet...</p>  
 				</div>
 			</div>
-			<br>
-			<div class="col-6 offset-3">
-				<ul class="list-group">
-					<li class="list-group-item" v-for="(file, index) in files" :key="index">
-						{{ file.name }}
-						<span class="remove-file" @click="removeFile(index)">x</span>
-					</li>
-				</ul>	
+
+			<!-- Files Loop -->
+			<div class="col-10 offset-1 mt-3">
+				<table class="table">
+					<thead>
+						<tr class="text-center">
+							<th>Select</th>
+							<th>Name</th>
+							<th>Size</th>
+							<th>Uploaded At</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="text-center" v-for="file in fileLoop" :key="file.id">
+							<td>
+								<p-check class="p-svg p-curve" color="success">
+									<!-- svg path -->
+									<svg slot="extra" class="svg svg-icon" viewBox="0 0 20 20">
+										<path d="M7.629,14.566c0.125,0.125,0.291,0.188,0.456,0.188c0.164,0,0.329-0.062,0.456-0.188l8.219-8.221c0.252-0.252,0.252-0.659,0-0.911c-0.252-0.252-0.659-0.252-0.911,0l-7.764,7.763L4.152,9.267c-0.252-0.251-0.66-0.251-0.911,0c-0.252,0.252-0.252,0.66,0,0.911L7.629,14.566z"
+													style="stroke: white;fill:white"></path>
+									</svg>
+								</p-check>
+							</td>
+							<td>{{ file.title }}</td>
+							<td>{{ Math.round(file.size/1024) }} KB</td>
+							<td>{{ file.created_at }}</td>
+							<td><i class="text-danger fa fa-trash"></i></td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
-    	<br>
-			<div class="col-6 offset-3 text-center">
-				<button class="btn btn-success" v-on:click="submitFiles()">Upload</button>
-			</div>
-    </div>
+			<a href="#" class="float" @click="formEnabled = !formEnabled">
+				<i class="fa fa-plus my-float"></i>
+			</a>
+		</div>
   </div>
 </template>
 
@@ -34,38 +73,38 @@ import { mapState } from 'vuex'
 export default {
 	data(){
 		return {
-			files: [],
-			mySpace: {},
-		}
-	},
-	mounted() {
-		if(this.loggedIn) {
-			this.getSpace();
+			formEnabled: false,
+			files: []
 		}
 	},
 	computed: {
 		...mapState({
       baseUrl: state => state.auth.baseUrl,
       token: state => state.auth.token,
-      user: state => state.auth.user
+			user: state => state.auth.user,
+			fileLoop: state => state.files.fileLoop
     })
 	},
+	mounted() {
+		this.fetchFiles();
+	},
 	methods: {
-		getSpace() {
-			this.axios.get(`${this.baseUrl}/api/spaces`, 
+		async fetchFiles() {
+			const response = await this.axios.get(`${this.baseUrl}/api/files`, 
 				{ headers: { Authorization: `Bearer ${this.token}` }
-			}).then(response => {
-				if(response.data.status) {
-					this.mySpace = response.data.content;
-				}
-			}).catch(error => console.log(error.response.data));
+			});
+
+			this.$store.dispatch('setFiles', response.data);		
 		},
+
 		addFiles(){
 			this.$refs.files.click();
 		},
+
 		removeFile( key ){
 			this.files.splice( key, 1 );
 		},
+
 		handleFileUploads(){
 			let uploadedFiles = this.$refs.files.files;
 
@@ -73,7 +112,8 @@ export default {
 				this.files.push( uploadedFiles[i] );
 			}
 		},
-		submitFiles(){
+
+		async submitFiles(){
 			let formData = new FormData();
 
 			for( var i = 0; i < this.files.length; i++ ){
@@ -82,21 +122,15 @@ export default {
 				formData.append('files[' + i + ']', file);
 			}
 
-			this.axios.post(`${this.baseUrl}/api/files`,
-				formData,
-				{
-					headers: {
-						'Content-Type': 'multipart/form-data',
-						Authorization: `Bearer ${this.token}`
-					}
-				}
-			).then((response) => {
-				console.log(response.data);
-				this.files = [];
-			})
-			.catch((error) => {
-				console.log(error.response.data);
-			});
+			const response = await this.axios.post(`${this.baseUrl}/api/files`,
+				formData, 
+				{ headers: {'Content-Type': 'multipart/form-data', Authorization: `Bearer ${this.token}`}}
+			);
+			console.log(response.data);
+
+			this.$store.dispatch('addFiles', response.data.files);
+			this.files = [];
+			this.formEnabled = false;
 		},
 	}
 }
@@ -109,7 +143,7 @@ export default {
     top: -500px;
   }
 
-		div.file-listing{
+	div.file-listing{
     width: 200px;
   }
 
@@ -122,10 +156,23 @@ export default {
 
 	.addFiles {
 		cursor: pointer;
-		border: 5px dashed black;
+		border: 1px dashed black;
 	}
 
-	i {
-		display: block;
-	}
+	.float{
+    position:fixed;
+    width:60px;
+    height:60px;
+    bottom:40px;
+    right:40px;
+    background-color:#4e73df;
+    color:#FFF;
+    border-radius:50px;
+    text-align:center;
+    box-shadow: 2px 2px 3px #999;
+  }
+
+  .my-float{
+    margin-top:22px;
+  }
 </style>
