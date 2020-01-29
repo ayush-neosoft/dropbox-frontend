@@ -1,19 +1,26 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+// import Home from '../views/Home.vue'
 import Snippets from '../views/Snippets.vue'
 import Files from '../views/Files.vue'
 import Tasks from '../views/Tasks.vue'
 import Network from '../views/Network.vue'
+import ChatLogin from '../views/ChatLogin.vue'
+import ChatDashboard from '../views/ChatDashboard.vue'
 
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: Home
+    name: 'login',
+    component: ChatLogin
   },
+  // {
+  //   path: '/',
+  //   name: 'home',
+  //   component: Home
+  // },
   {
     path: '/tasks',
     name: 'tasks',
@@ -34,6 +41,11 @@ const routes = [
     name: 'network',
     component: Network
   },
+  {
+    path: '/chat',
+    name: 'chat',
+    component: ChatDashboard,
+  }
 ]
 
 const router = new VueRouter({

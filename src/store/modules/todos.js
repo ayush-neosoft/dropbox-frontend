@@ -4,8 +4,6 @@ const state = {
     todos: [],
 }
 
-const getters = {}
-
 const actions = {
     async fetchTodos({commit}) {
         const response = await axios.get('https://jsonplaceholder.typicode.com/todos');
@@ -22,9 +20,6 @@ const actions = {
 
         commit('removeTodo', id);
     },
-    // async filterTodos({commit}, limit) {
-        
-    // },
     async updateTodo({commit}, updTodo) {
         const response = await axios.put(`https://jsonplaceholder.typicode.com/todos/${updTodo.id}`, updTodo)
 
@@ -45,8 +40,8 @@ const mutations = {
 }
 
 export default {
+    namespaced: true,
     state,
-    getters,
     actions,
     mutations
 }

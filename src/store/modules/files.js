@@ -1,28 +1,42 @@
+import File from '../../apis/File'
 
 const state = {
     fileLoop: []
 }
 
-const getters = {}
-
 const actions = {
-    setFiles({commit}, files) {
-        commit('SET_FILES', files)
+    getAllFiles({commit}) {
+        File.all().then(response => {
+            commit('SET_ALL', response.data)
+        })
     },
 
-    addFiles({commit}, files) {
-        commit('ADD_FILES', files)
+    saveFile({commit}, data) {
+        File.save(data).then(response => {
+            commit('ADD_FILES', response.data.files)
+        })
+    },
+
+    deleteFile({commit}, id) {
+        File.delete(id).then(() => {
+            commit('DELETE_ONE', id)
+        })
     }
 }
 
 const mutations = {
-    SET_FILES: (state, files) => state.fileLoop = files,
-    ADD_FILES: (state, files) => files.forEach((e) => { state.fileLoop.unshift(e)}),
+    SET_ALL: (state, files) => state.fileLoop = files,
+
+    ADD_FILES: (state, files) => files.forEach((e) => { 
+        state.fileLoop.unshift(e)
+    }),
+
+    DELETE_ONE: (state, id) => state.fileLoop = state.fileLoop.filter(u => (u.id !== id)),
 }
 
 export default {
+    namespaced: true,
     state,
-    getters,
     actions,
     mutations
 }

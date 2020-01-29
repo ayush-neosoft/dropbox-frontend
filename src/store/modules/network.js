@@ -1,25 +1,24 @@
+import User from '../../apis/User'
 
 const state = {
   users: []
 }
 
-const getters = {
-
-}
-
 const actions = {
-  setUsers({commit}, users) {
-    commit('SET_USERS', users);
+  getAllUsers({commit}) {
+    User.all().then(response => {
+      commit('SET_ALL', response.data);
+    })
   }
 }
 
 const mutations = {
-  SET_USERS: (state, users) => state.users = users,
+  SET_ALL: (state, data) => state.users = data,
 }
 
 export default {
-    state,
-    getters,
-    actions,
-    mutations
+  namespaced: true,
+  state,
+  actions,
+  mutations
 }

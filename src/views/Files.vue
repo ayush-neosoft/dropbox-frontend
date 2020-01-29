@@ -5,10 +5,10 @@
 			<!-- Files Upload Form -->
 			<div class="col-6 offset-3 mt-3">
 				<div v-if="formEnabled">
-					<input type="file" id="files" ref="files" multiple @change="handleFileUploads()"/>
+					<input type="file" id="files" ref="files" multiple @change="form_handle()"/>
 					<br>
 					<div class="text-center">
-						<div @click="addFiles()" class="addFiles">
+						<div @click="form_add()" class="addFiles">
 							<span class="title" style="line-height: 80px">Browse Files</span>
 						</div>
 					</div>
@@ -16,12 +16,12 @@
 					<ul class="list-group">
 						<li class="list-group-item" v-for="(file, index) in files" :key="index">
 							{{ file.name }}
-							<span class="remove-file" @click="removeFile(index)">x</span>
+							<span class="remove-file" @click="form_remove(index)">x</span>
 						</li>
 					</ul>	
 					<br>
 					<div class="text-center">
-						<button class="btn btn-success" @click.prevent="submitFiles()">Upload</button>
+						<button class="btn btn-success" @click.prevent="store()">Upload</button>
 					</div>
 				</div>
 				<div class="text-center mt-5" v-if="fileLoop.length === 0">
@@ -34,7 +34,7 @@
 				<table class="table">
 					<thead>
 						<tr class="text-center">
-							<th>Select</th>
+							<th><p-check color="primary" v-model="selectAll"></p-check></th>
 							<th>Name</th>
 							<th>Size</th>
 							<th>Uploaded At</th>
@@ -43,19 +43,17 @@
 					</thead>
 					<tbody>
 						<tr class="text-center" v-for="file in fileLoop" :key="file.id">
+							<td><p-check color="primary" v-model="selected" :value="file.id"></p-check></td>
 							<td>
-								<p-check class="p-svg p-curve" color="success">
-									<!-- svg path -->
-									<svg slot="extra" class="svg svg-icon" viewBox="0 0 20 20">
-										<path d="M7.629,14.566c0.125,0.125,0.291,0.188,0.456,0.188c0.164,0,0.329-0.062,0.456-0.188l8.219-8.221c0.252-0.252,0.252-0.659,0-0.911c-0.252-0.252-0.659-0.252-0.911,0l-7.764,7.763L4.152,9.267c-0.252-0.251-0.66-0.251-0.911,0c-0.252,0.252-0.252,0.66,0,0.911L7.629,14.566z"
-													style="stroke: white;fill:white"></path>
-									</svg>
-								</p-check>
+								<span class="text-primary"
+									style="cursor:pointer"
+									@click="downloadWithVueResource(file.path, file.title)">
+									{{ file.title }}
+								</span>
 							</td>
-							<td>{{ file.title }}</td>
 							<td>{{ Math.round(file.size/1024) }} KB</td>
 							<td>{{ file.created_at }}</td>
-							<td><i class="text-danger fa fa-trash"></i></td>
+							<td><span @click="destroy(file.id)"><i class="text-danger fas fa-trash"></i></span></td>
 						</tr>
 					</tbody>
 				</table>
@@ -68,44 +66,50 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 
 export default {
 	data(){
 		return {
 			formEnabled: false,
-			files: []
+			files: [],
+			selected: []
 		}
 	},
 	computed: {
-		...mapState({
-      baseUrl: state => state.auth.baseUrl,
-      token: state => state.auth.token,
-			user: state => state.auth.user,
-			fileLoop: state => state.files.fileLoop
-    })
+		...mapState('files', ['fileLoop']),
+		selectAll: {
+			get() {
+					return this.fileLoop ? this.selected.length == this.fileLoop.length : false;
+			},
+			set(value) {
+					var selected = [];
+
+					if (value) {
+						this.fileLoop.forEach((e) => { selected.push(e.id) });
+					}
+
+					this.selected = selected;
+			}
+		},
 	},
 	mounted() {
-		this.fetchFiles();
+		this.index();
 	},
 	methods: {
-		async fetchFiles() {
-			const response = await this.axios.get(`${this.baseUrl}/api/files`, 
-				{ headers: { Authorization: `Bearer ${this.token}` }
-			});
-
-			this.$store.dispatch('setFiles', response.data);		
-		},
-
-		addFiles(){
+		...mapActions('files', [
+        'getAllFiles',
+        'saveFile',
+        'deleteFile'
+			]),
+			
+		form_add() {
 			this.$refs.files.click();
 		},
-
-		removeFile( key ){
+		form_remove(key) {
 			this.files.splice( key, 1 );
 		},
-
-		handleFileUploads(){
+		form_handle(){
 			let uploadedFiles = this.$refs.files.files;
 
 			for( var i = 0; i < uploadedFiles.length; i++ ){
@@ -113,25 +117,48 @@ export default {
 			}
 		},
 
-		async submitFiles(){
+		index() {
+				this.getAllFiles()
+		},
+		store(){
 			let formData = new FormData();
-
 			for( var i = 0; i < this.files.length; i++ ){
 				let file = this.files[i];
 
 				formData.append('files[' + i + ']', file);
 			}
 
-			const response = await this.axios.post(`${this.baseUrl}/api/files`,
-				formData, 
-				{ headers: {'Content-Type': 'multipart/form-data', Authorization: `Bearer ${this.token}`}}
-			);
-			console.log(response.data);
-
-			this.$store.dispatch('addFiles', response.data.files);
+			this.saveFile(formData);
 			this.files = [];
 			this.formEnabled = false;
 		},
+		destroy(id) {
+			if(confirm('Are you sure?')) {
+				this.deleteFile(id)
+			}
+		},
+
+		// File Download Methods
+		forceFileDownload(response, title) {
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', title) //or any other extension
+      document.body.appendChild(link)
+      link.click()
+    },
+    
+    downloadWithVueResource(link, title) {
+      this.$http({
+        method: 'get',
+        url: `http://127.0.0.1:8000/download/${link}`,
+        responseType: 'arraybuffer'
+      })
+      .then(response => {
+        this.forceFileDownload(response, title)  
+      })
+      .catch(() => console.log('error occured'))
+    },
 	}
 }
 </script>
