@@ -50,7 +50,7 @@ export default {
     async onSubmit() {
       const result = await this.login(this.userId);
       if(result) {
-        this.$router.push('chat');
+        this.$store.commit('chat/setSession', true);
       }
     }
   }

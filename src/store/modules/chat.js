@@ -1,6 +1,7 @@
 import chatkit from '@/chatkit';
 
 const state = {
+  logged: false,
   loading: false,
   sending: false,
   error: null,
@@ -14,42 +15,21 @@ const state = {
 }
 
 const mutations = {
-  setError(state, error) {
-    state.error = error;
-  },
-  setLoading(state, loading) {
-    state.loading = loading;
-  },
-  setUser(state, user) {
-    state.user = user;
-  },
-  setReconnect(state, reconnect) {
-    state.reconnect = reconnect;
-  },
-  setActiveRoom(state, roomId) {
-    state.activeRoom = roomId;
-  },
-  setRooms(state, rooms) {
-    state.rooms = rooms
-  },
-  setUsers(state, users) {
-    state.users = users
-  },
- clearChatRoom(state) {
+  setSession: (state, status) => state.logged = status, 
+  setError: (state, error) => state.error = error,
+  setLoading: (state, loading) => state.loading = loading,
+  setUser: (state, user) => state.user = user,
+  setReconnect: (state, reconnect) => state.reconnect = reconnect,
+  setActiveRoom: (state, roomId) => state.activeRoom = roomId,
+  setRooms: (state, rooms) => state.rooms = rooms,
+  setUsers: (state, users) => state.users = users,
+  setMessages: (state, messages) => state.messages = messages,
+  addMessage: (state, message) => state.messages.push(message),
+  setSending: (state, status) => state.sending = status,
+  setUserTyping: (state, userId) => state.userTyping = userId,
+  clearChatRoom(state) {
     state.users = [];
     state.messages = [];
-  },
-  setMessages(state, messages) {
-    state.messages = messages
-  },
-  addMessage(state, message) {
-    state.messages.push(message)
-  },
-  setSending(state, status) {
-    state.sending = status
-  },
-  setUserTyping(state, userId) {
-    state.userTyping = userId
   },
   reset(state) {
     state.error = null;
@@ -102,6 +82,9 @@ const actions = {
       commit('setLoading', false);
     }
   },
+  // addUser() {
+  //   chatkit.addUser()
+  // },
   async changeRoom({ commit }, roomId) {
     try {
       const { id, name } = await chatkit.subscribeToRoom(roomId);
@@ -124,8 +107,9 @@ const actions = {
   },
   async logout({ commit }) {
     commit('reset');
+    commit('setSession', false);
     chatkit.disconnectUser();
-    window.localStorage.clear();
+    window.localStorage.removeItem('chat');
   }
 }
 

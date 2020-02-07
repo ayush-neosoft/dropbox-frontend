@@ -5,6 +5,7 @@ import Toasted from 'vue-toasted';
 import PrettyCheckbox from 'pretty-checkbox-vue';
 import BootstrapVue from 'bootstrap-vue'
 import VueChatScroll from 'vue-chat-scroll'
+import Vuelidate from 'vuelidate'
 
 // import VueHighlightJS from 'vue-highlightjs'
 
@@ -28,6 +29,7 @@ Vue.use(VueAxios, axios)
 Vue.use(PrettyCheckbox);
 Vue.use(BootstrapVue)
 Vue.use(VueChatScroll)
+Vue.use(Vuelidate)
 
 Vue.mixin({
   methods: {

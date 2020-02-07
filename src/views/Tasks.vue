@@ -1,26 +1,33 @@
 <template>
 	<div class="container">
-		<AddTodo class="mt-5 mb-5" />
+		<div class="add my-5">
+			<form @submit.prevent="store()">
+				<div class="input-group input-group-lg">
+					<input type="text" class="form-control bg-white small" v-model="content" placeholder="Add a task..." aria-label="Search" aria-describedby="basic-addon2">
+					<div class="input-group-append">
+						<a class="btn btn-primary" type="submit" @click.prevent="store()">
+							<i class="text-white fas fa-plus"></i>
+						</a>
+					</div>
+				</div>
+			</form>
+		</div>
 		<div class="todos">
 			<div class="card border-left-success shadow text-center mb-5" 
-				v-for="(todo, index) in todos.todos" :key="index"
-				:class="{'is-completed': todo.completed}">
+				v-for="task in taskLoop" :key="task.id">
 				<div class="card-header">
-					<span class="float-left">0:00</span>
-
-					<span><i class="text-warning fas fa-pause"></i></span>
-
-					<a href="#" @click="deleteTodo(todo.id)" class="text-muted float-right">
+					<!-- <span class="float-left">0:00</span> -->
+					<span class="float-left" v-text="formatDate(task.created_at)"></span>
+					<!-- <span><i class="text-warning fas fa-pause"></i></span> -->
+					<a href="#" @click="destroy(task.id)" class="text-muted float-right">
 						<i class="text-danger fas fa-trash"></i>
 					</a>
 				</div>
 				<div class="card-body">
-					<h5 class="card-title">{{ todo.title }}</h5>
-					<p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+					<!-- <h5 class="card-title">{{ task.content }}</h5> -->
+					<p class="card-text">{{ task.content }}</p>
 				</div>
-				<div class="card-footer text-muted">
-					
-				</div>
+				<!-- <div class="card-footer text-muted"></div> -->
 			</div>
 		</div>
 	</div>
@@ -28,29 +35,76 @@
 
 <script>
 import { mapState, mapActions } from 'vuex';
-import AddTodo from '@/components/Todos/AddTodo';
 
 export default {
-	name: "Todos",
-	components: {
-			AddTodo
+	name: "Tasks",
+	data() {
+		return {
+			content: ''
+		}
 	},
 	computed: {
-		...mapState(['todos']),
+		...mapState('tasks', ['taskLoop']),
 	},
-	created() {
-		this.fetchTodos();
+	mounted() {
+		this.index();
 	},
 	methods: {
-		...mapActions(['fetchTodos', 'deleteTodo', 'updateTodo']),
-		onDblClick(todo) { 
-			const updTodo =	{
-				id: todo.id,
-				title: todo.title,
-				completed: !todo.completed
-			}
+		...mapActions('tasks', [
+				'getAllTasks',
+				'getOneTask', 
+				'saveTask',
+				'updateTask',
+				'deleteTask'
+			]),
 
-			this.updateTodo(updTodo);
+		index() {
+			this.getAllTasks();
+		},
+		show(id) {
+			this.getOneTask(id);
+		},
+		store() {
+			if(this.content.length >= 3) {
+				let data = {'content' : this.content}
+				this.saveTask(data);
+				this.content = '';
+			} else {
+				this.$toasted.error('Atleast 3 characters', {duration: 2000});
+			}
+		},
+		update(id) {
+			this.updateTask(id, this.content);
+		},
+		destroy(id) {
+			this.deleteTask(id);
+		},
+		formatDate(date) {
+			const months = [
+				'January',
+				'February',
+				'March',
+				'April',
+				'May',
+				'June',
+				'July',
+				'August',
+				'September',
+				'October',
+				'November',
+				'December'
+			];
+			const days = [
+				'Sun',
+				'Mon',
+				'Tue',
+				'Wed',
+				'Thu',
+				'Fri',
+				'Sat'
+			];
+			let d = new Date(date);
+			return `${d.getHours()}:${d.getMinutes()} on ${days[d.getDay()]} ${d.getDate()}, ${months[d.getMonth()]} ${d.getFullYear()}`
 		}
 	}
 }

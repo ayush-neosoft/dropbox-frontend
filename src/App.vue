@@ -73,8 +73,15 @@
 
         <li class="nav-item">
           <router-link class="nav-link" to="/network">
-            <i class="fas fa-fw fa-comments"></i>
+            <i class="fas fa-fw fa-users"></i>
             <span>Network</span>
+          </router-link>
+        </li>
+
+        <li class="nav-item">
+          <router-link class="nav-link" to="/chat">
+            <i class="fas fa-fw fa-comments"></i>
+            <span>Chat</span>
           </router-link>
         </li>
 

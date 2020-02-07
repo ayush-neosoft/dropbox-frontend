@@ -3,7 +3,7 @@ import Vuex from 'vuex'
 import VuexPersistence from 'vuex-persist'
 
 // Modules
-import todos from './modules/todos'
+import tasks from './modules/tasks'
 import files from './modules/files'
 import snippets from './modules/snippets'
 import network from './modules/network'
@@ -31,7 +31,7 @@ export default new Vuex.Store({
     SET_USER: (state, user) => state.user = user,
   },
   modules: {
-    todos, files, snippets, network, chat
+    tasks, files, snippets, network, chat
   },
 
   plugins: [vuexLocal.plugin],

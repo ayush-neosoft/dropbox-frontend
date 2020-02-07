@@ -1,6 +1,6 @@
 <template>
 	<div class="container">
-    <div class="row">
+    <div class="row mt-5">
 
 			<!-- Files Upload Form -->
 			<div class="col-6 offset-3 mt-3">

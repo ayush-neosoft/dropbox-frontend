@@ -29,7 +29,7 @@ export default {
       'setReconnect'
     ]),
     onLogout() {
-      this.$router.push({ path: '/' });
+      // this.$router.push({ path: '/' });
       this.logout();
     },
     unload() {

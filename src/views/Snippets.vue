@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div class="row">
+    <div class="row mt-5">
       <div class="col-10 offset-1">
         <div class="form mb-5" v-if="createMode">
           <div class="form-group">
@@ -29,31 +29,8 @@
           </div>
         </div>
         
-        <div v-else class="card shadow mb-5 bg-white rounded" v-for="snipp in codeLoop" :key="snipp.id">
-          <div class="card-header">
-            {{ snipp.title }}
-            <div class="float-right" v-if="snipp.user_id === $store.state.user.id">
-              <span @click="show(snipp.id)" class="ml-3">
-                <i class="text-warning fa fa-edit"></i>
-              </span>
-              <span class="ml-3"><i class="text-success fa fa-share"></i></span>
-              <span @click="destroy(snipp.id)" class="ml-3">
-                <i class="text-danger fa fa-trash"></i>
-              </span>
-            </div>
-            <div class="float-right" v-else>
-              <span class="ml-3"><i class="text-dark fa fa-code-fork"></i></span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div v-html="snipp.content"></div>
-          </div>
-          <div class="card-footer bg-dark text-white">
-            <span class="stars" @click="snipp.stars++">
-              <i class="fas fa-star"></i>
-            </span>
-            {{ snipp.stars }}
-          </div>
+        <div v-else>
+          <SnippetLoop :codes="codeLoop" @show="show" @destroy="destroy" />
         </div>
 
         <div class="text-center mt-5" v-if="codeLoop.length === 0">
@@ -71,10 +48,12 @@
 <script>
 import { VueEditor } from "vue2-editor";
 import { mapState, mapActions } from 'vuex';
+import SnippetLoop from '@/components/snippets/SnippetLoop'
 
 export default {
   components: {
-    VueEditor
+    VueEditor,
+    SnippetLoop
   },
   data() {
     return {
@@ -111,6 +90,7 @@ export default {
     },
     store() {
       this.saveSnippet(this.snippet);
+      this.snippet = {title: '', content: ''},
       this.createMode = false;
     },
     update() {
